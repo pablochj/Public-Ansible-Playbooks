@@ -1,0 +1,16 @@
+---
+- name: NCPA configuration example
+  hosts: target_group
+  gather_facts: false
+  become: true
+  become_user: root
+  become_method: sudo
+  become_flags: 'su - root /bin/bash -c'
+  tasks:
+    - name: Placeholder for NCPA configuration review
+      ansible.builtin.debug:
+        msg:
+          - "Example shared template."
+          - "Review local paths and service names before use."
+          - "Example path: /usr/local/ncpa/etc/ncpa.cfg.d/service.cfg"
+          - "Example service: ncpa_passive.service"

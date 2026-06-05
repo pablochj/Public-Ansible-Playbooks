@@ -1,0 +1,47 @@
+---
+- name: Find files and directories in /var/log with permissions for others
+  hosts: target_group
+  become: true
+  gather_facts: false
+  become_user: root
+  become_method: su
+  become_exe: sudo su -
+  tasks:
+    - name: Find files and directories with permissions for others
+      ansible.builtin.command: find /var/log -perm -o+rwx
+      register: find_output
+      failed_when: find_output.rc != 0
+      changed_when: false
+
+    - name: Verify whether files or directories were found
+      ansible.builtin.fail:
+        msg: "No files or directories with permissions for others were found in /var/log"
+      when: find_output.stdout == ""
+
+    - name: Get information for each file or directory found
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      register: file_stats
+      loop: "{{ find_output.stdout_lines }}"
+      loop_control:
+        label: "{{ item }}"
+
+    - name: Remove permissions for others from files found
+      ansible.builtin.file:
+        path: "{{ item.stat.path }}"
+        mode: "u=rw,g=r,o="
+      loop: "{{ file_stats.results }}"
+      when: item.stat.isreg
+
+    - name: Remove permissions for others from directories found
+      ansible.builtin.file:
+        path: "{{ item.stat.path }}"
+        mode: "u=rwx,g=rx,o="
+      loop: "{{ file_stats.results }}"
+      when: item.stat.isdir
+
+    - name: Show processed files and directories
+      ansible.builtin.debug:
+        msg: "Permissions for others removed from: {{ item.stat.path }}"
+      loop: "{{ file_stats.results }}"
+      when: item.stat.isreg or item.stat.isdir

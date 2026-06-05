@@ -1,0 +1,11 @@
+---
+- hosts: target_group
+  become: true
+  gather_facts: false
+  become_user: root
+  become_method: su
+  become_exe: sudo su -
+  tasks:
+    - name: Execute approved script from generic path
+      ansible.builtin.command: /home/<user>/example_script.sh
+      changed_when: false

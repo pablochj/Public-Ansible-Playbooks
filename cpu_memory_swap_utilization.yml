@@ -1,0 +1,62 @@
+---
+- name: Gather system utilization information
+  hosts: target_group
+  become: true
+  gather_facts: true
+  become_user: root
+  become_method: su
+  become_exe: sudo su -
+  tasks:
+    - name: Gather CPU utilization
+      ansible.builtin.shell: "top -bn1 | grep 'Cpu(s)'"
+      register: cpu_utilization
+      changed_when: false
+
+    - name: Gather top 10 processes by CPU usage without full command arguments
+      ansible.builtin.shell: "ps -eo pid,ppid,comm,%mem,%cpu --sort=-%cpu | head -n 11"
+      register: top_cpu_processes
+      changed_when: false
+
+    - name: Gather memory utilization
+      ansible.builtin.command: free -m
+      register: memory_utilization
+      changed_when: false
+
+    - name: Gather top 10 processes by memory usage without full command arguments
+      ansible.builtin.shell: "ps -eo pid,ppid,comm,%mem,%cpu --sort=-%mem | head -n 11"
+      register: top_memory_processes
+      changed_when: false
+
+    - name: Gather swap memory utilization
+      ansible.builtin.shell: "free -m | grep Swap"
+      register: swap_memory_utilization
+      changed_when: false
+
+    - name: Gather top 10 processes by swap usage
+      ansible.builtin.shell: "for pid in $(ps -eo pid --sort=-%mem | head -n 11 | tail -n 10); do grep VmSwap /proc/$pid/status 2>/dev/null | awk '{print $2 " kB"}'; done"
+      register: top_swap_processes
+      changed_when: false
+
+    - name: Display CPU utilization
+      ansible.builtin.debug:
+        msg: "{{ cpu_utilization.stdout }}"
+
+    - name: Display top 10 processes by CPU usage
+      ansible.builtin.debug:
+        msg: "{{ top_cpu_processes.stdout_lines }}"
+
+    - name: Display memory utilization
+      ansible.builtin.debug:
+        msg: "{{ memory_utilization.stdout }}"
+
+    - name: Display top 10 processes by memory usage
+      ansible.builtin.debug:
+        msg: "{{ top_memory_processes.stdout_lines }}"
+
+    - name: Display swap memory utilization
+      ansible.builtin.debug:
+        msg: "{{ swap_memory_utilization.stdout }}"
+
+    - name: Display top 10 processes by swap usage
+      ansible.builtin.debug:
+        msg: "{{ top_swap_processes.stdout_lines }}"

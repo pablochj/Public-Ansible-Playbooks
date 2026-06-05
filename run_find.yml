@@ -1,0 +1,32 @@
+---
+- hosts: target_group
+  name: Find files and directories with specific permissions and export to CSV
+  become: true
+  gather_facts: false
+  become_user: root
+  become_method: su
+  become_exe: sudo su -
+  tasks:
+    - name: Run find command
+      ansible.builtin.command: find /var/log -perm /g=wx -perm /o=rwx
+      register: find_output
+      changed_when: false
+
+    - name: Create CSV header
+      ansible.builtin.lineinfile:
+        path: /tmp/find_output.csv
+        line: "Server,Output"
+        create: true
+        state: present
+
+    - name: Append find command output to CSV
+      ansible.builtin.lineinfile:
+        path: /tmp/find_output.csv
+        line: "{{ inventory_hostname }},{{ find_output.stdout_lines | join(';') }}"
+        state: present
+
+    - name: Download the CSV file to local machine
+      ansible.builtin.fetch:
+        src: /tmp/find_output.csv
+        dest: ./find_output_{{ inventory_hostname }}.csv
+        flat: true

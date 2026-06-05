@@ -1,0 +1,27 @@
+---
+- name: Create backups of selected files before OS patching
+  hosts: target_group
+  become: true
+  gather_facts: true
+  become_user: root
+  become_method: su
+  become_exe: sudo su -
+  tasks:
+    - name: Create backup directory if it does not exist
+      ansible.builtin.file:
+        path: /backups
+        state: directory
+        mode: '0755'
+
+    # Sensitive files such as /etc/shadow were intentionally excluded from this shared template.
+    - name: Backup /etc/passwd
+      ansible.builtin.copy:
+        src: /etc/passwd
+        dest: "/backups/passwd_{{ ansible_date_time.date }}_{{ ansible_date_time.hour }}{{ ansible_date_time.minute }}{{ ansible_date_time.second }}"
+        remote_src: true
+
+    - name: Backup /etc/fstab
+      ansible.builtin.copy:
+        src: /etc/fstab
+        dest: "/backups/fstab_{{ ansible_date_time.date }}_{{ ansible_date_time.hour }}{{ ansible_date_time.minute }}{{ ansible_date_time.second }}"
+        remote_src: true

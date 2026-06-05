@@ -1,0 +1,20 @@
+---
+- name: Add example cron jobs
+  hosts: target_group
+  become: true
+  tasks:
+    - name: Create example cron job 1
+      ansible.builtin.cron:
+        name: "Example cronjob 1"
+        user: "ansible"
+        minute: "25,55"
+        job: sudo sh -c '/opt/example/bin/run_example.sh > /opt/example/logs/cron.log 2>/dev/null'
+
+    - name: Create example cron job 2
+      ansible.builtin.cron:
+        name: "Example cronjob 2"
+        user: "ansible"
+        minute: "0"
+        hour: "2"
+        weekday: "6"
+        job: sudo sh -c '/opt/example/bin/scan_example.sh /opt/example 2>/dev/null'

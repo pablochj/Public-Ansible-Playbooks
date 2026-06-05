@@ -1,0 +1,18 @@
+---
+- name: Gather generic server information
+  hosts: target_group
+  become: true
+  gather_facts: true
+  become_user: root
+  become_method: su
+  become_exe: sudo su -
+  tasks:
+    - name: Obtain generic host and operating system information
+      ansible.builtin.shell: |
+        echo -e "\nHostname: $(hostname)\n======================\n\nOperating system: $(lsb_release -d | cut -f2-)\nInstalled memory: $(grep MemTotal /proc/meminfo)"
+      register: host_os_output
+      changed_when: false
+
+    - name: Show information
+      ansible.builtin.debug:
+        msg: "{{ host_os_output.stdout_lines }}"

@@ -1,0 +1,22 @@
+---
+- name: Download a file starting with a generic prefix from the server
+  hosts: target_group
+  become: true
+  gather_facts: false
+  become_user: root
+  become_method: su
+  become_exe: sudo su -
+  tasks:
+    - name: Find the file matching a generic pattern
+      ansible.builtin.find:
+        paths: /tmp
+        patterns: "example_file_*"
+      register: found_files
+
+    - name: Fetch the file from the server
+      ansible.builtin.fetch:
+        src: "{{ item.path }}"
+        dest: ./downloads/
+        flat: true
+      loop: "{{ found_files.files }}"
+      when: found_files.matched > 0

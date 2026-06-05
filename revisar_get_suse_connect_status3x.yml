@@ -1,0 +1,16 @@
+---
+- hosts: target_group
+  become: true
+  gather_facts: false
+  become_user: root
+  become_method: su
+  become_exe: sudo su -
+  tasks:
+    - name: Execute SUSEConnect status
+      ansible.builtin.command: SUSEConnect --status-text
+      register: command_output
+      changed_when: false
+
+    - name: Show command output
+      ansible.builtin.debug:
+        var: command_output.stdout_lines

@@ -1,0 +1,14 @@
+---
+- name: Collect server information
+  hosts: target_group
+  gather_facts: false
+  become: true
+  become_user: root
+  become_method: sudo
+  become_flags: 'su - root /bin/bash -c'
+  tasks:
+    - name: Server information
+      ansible.builtin.shell: "uname -n; date; uptime; uname -a"
+      register: command_output
+      ignore_errors: true
+      changed_when: false

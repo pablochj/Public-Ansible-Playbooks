@@ -1,0 +1,17 @@
+---
+- hosts: target_group
+  become: true
+  gather_facts: false
+  become_user: root
+  become_method: su
+  become_exe: sudo su -
+  tasks:
+    - name: Validate salt minion without exposing pillar data
+      ansible.builtin.shell: "uname -n; zypper refresh; systemctl is-active salt-minion && salt-call test.version"
+      register: command_output
+      ignore_errors: true
+      changed_when: false
+
+    - name: Show output
+      ansible.builtin.debug:
+        var: command_output.stdout_lines
